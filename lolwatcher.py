@@ -1,0 +1,2 @@
+from riotwatcher import LolWatcher
+
