@@ -1,16 +1,25 @@
-# from riotwatcher import LolWatcher
+
 import pandas as pd
 import requests
 import json
 import codecs
-
+import numpy
+from matplotlib import pyplot as plt
 
 
 class SauderStats(str):
 
     def __init__(self, summoner_name: str):
+        api_dev = ""
+        api_prod = ""
+        with open("api.txt") as api:
+            lines = api.readlines()
+        
+            api_dev = lines[0].replace("\n","")
+            api_prod = lines[1]
+
         #variables used for requests
-        self.my_api = "RGAPI-98f4fddc-16eb-4ebe-8933-cea5a9138969"
+        self.my_api = api_dev
         self.my_region = "NA1"
         self.my_summoner_name = summoner_name
         self.my_puuid = ""
@@ -22,7 +31,7 @@ class SauderStats(str):
                             "Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8",
                             "Accept-Charset": "application/x-www-form-urlencoded; charset=UTF-8",
                             "Origin": "https://developer.riotgames.com",
-                            "X-Riot-Token": "RGAPI-5e49435a-29af-452d-b499-03296199aaba"
+                            "X-Riot-Token": api_dev
                         }
 
         self.platform_url = "https://na1.api.riotgames.com"
@@ -44,13 +53,14 @@ class SauderStats(str):
               )
 
         
-    def get_match_data(self,role: str):
+    def get_match_data(self,role: str,num_games: int):
         #filter for ranked, queueid=420 = soloq
         x=0
-        past_matches = requests.get(self.region_url + '/lol/match/v5/matches/by-puuid/' + self.my_puuid + '/ids' + '?queue=420&start=' + str(x) + '&count=30',headers=self.header)
+        past_matches = requests.get(self.region_url + '/lol/match/v5/matches/by-puuid/' + self.my_puuid + '/ids' + '?queue=420&start=' + str(x) + '&count=' + str(num_games),headers=self.header)
         past_matches_json = past_matches.json()
 
-        solo_queue_matches = []
+        #this is a list of data dto of games where the player is playing their main role in solo queue
+        solo_queue_match_stats= []
 
         y=1
         for match in past_matches_json:
@@ -67,8 +77,8 @@ class SauderStats(str):
             # need to find stats for 1 player out of 10, find summoner name in loop
             my_part_index = 0
             participants = match_info['participants']
+            index = 0
             for part in participants:
-                index = 0
                 if part['summonerName'] == self.my_summoner_name:
                     my_part_index = index
                 index = index+1
@@ -79,21 +89,36 @@ class SauderStats(str):
             #filtering out matches where the player was not playing their main role
             if  my_role_in_match == role:
                 print("This game was solo queue, and the role of " + self.my_summoner_name + " was " + role)
-                solo_queue_matches.append(match)
+                solo_queue_match_stats.append(participants[my_part_index])
 
             print("match" + str(y))
             y=y+1
             
         #collecting data from matches where player is playing their main role
-        for match in solo_queue_matches:
-            match_data = requests.get(self.region_url + '/lol/match/v5/matches/' + match, headers=self.header)
-            match_data_json = match_data.json()
-            match_info = match_data_json['info']
+
+        print("now analyzing in-game stats where " + self.my_summoner_name + " played " + role)
+        num_matches = len(solo_queue_match_stats)
+        print("analyzing " + str(num_matches) + " games:")
+        champs = []
+
+        for match_stat in solo_queue_match_stats:
+
+            # match_data = requests.get(self.region_url + '/lol/match/v5/matches/' + match, headers=self.header)
+            # match_timeline = requests.get(self.region_url + '/lol/match/v5/matches/' + match + '/timeline', headers=self.header)
+            # match_data_json = match_data.json()
+            # match_stats = match_data_json['info']['participants']
+            champs.append(match_stat['championName'])
+        
+        champs.sort(reverse=True)
+        plt.hist(champs)
+        plt.show()
+
+        
 
 
 if __name__ == "__main__":
-    player = ["UBC Sauder", "TOP"]
+    player = ["", ""]
     s = SauderStats(player[0])
     s.get_summoner_data()
-    s.get_match_data(player[1])
+    s.get_match_data(player[1],20)
     
