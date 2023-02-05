@@ -31,7 +31,7 @@ class SauderStats(str):
                             "Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8",
                             "Accept-Charset": "application/x-www-form-urlencoded; charset=UTF-8",
                             "Origin": "https://developer.riotgames.com",
-                            "X-Riot-Token": api_dev
+                            "X-Riot-Token": "RGAPI-5e49435a-29af-452d-b499-03296199aaba"
                         }
 
         self.platform_url = "https://na1.api.riotgames.com"
