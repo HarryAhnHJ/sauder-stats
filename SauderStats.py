@@ -31,15 +31,17 @@ class SauderStats(str):
                             "Accept-Language": "en-GB,en-US;q=0.9,en;q=0.8",
                             "Accept-Charset": "application/x-www-form-urlencoded; charset=UTF-8",
                             "Origin": "https://developer.riotgames.com",
-                            "X-Riot-Token": "RGAPI-5e49435a-29af-452d-b499-03296199aaba"
+                            "X-Riot-Token": "RGAPI-bce53a76-f800-4e6d-b0f2-0b1bb72e5b72"
                         }
 
         self.platform_url = "https://na1.api.riotgames.com"
         self.region_url = "https://americas.api.riotgames.com"
 
     def get_summoner_data(self):
+        print("got here")
         summoner_data = requests.get(self.platform_url + '/lol/summoner/v4/summoners/by-name/' + self.my_summoner_name,headers=self.header)
         summoner_data_json = summoner_data.json()
+        print(summoner_data_json)
         self.my_puuid = summoner_data_json['puuid']
         self.my_summid = summoner_data_json['id']
 
@@ -117,7 +119,7 @@ class SauderStats(str):
 
 
 if __name__ == "__main__":
-    player = ["", ""]
+    player = ["ubc sauder", "top"]
     s = SauderStats(player[0])
     s.get_summoner_data()
     s.get_match_data(player[1],20)
